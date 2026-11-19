@@ -50,6 +50,8 @@ birthday_results |>
 
 The probability of sharing a birthday increases with group size. With approximately 23 people, the probability exceeds 50%, and it approaches 97% when the group size reaches 50.
 
+
+
 # Problem 2
 ```{r file_list}
 file_list=list.files(
@@ -130,9 +132,125 @@ theme_minimal()
 
 The spaghetti plot shows different trends between the two arm groups over eight weeks. The experimental group generally shows an increasing trend in observations, while the control group remains relatively stable with some fluctuations. There is also individual variability within both groups.
 
+# Problem 3
+```{r}
+sim_data=tibble(
+  x=rnorm(
+    n=30,
+    mean=0,
+    sd=5
+  )
+)
+sim_data
 
+mean(sim_data$x)
+sd(sim_data$x)
+```
 
+```{r}
+t.test(sim_data$x, mu = 0)
+broom::tidy(t.test(sim_data$x,mu=0))
+```
 
+```{r}
+sim_ttest=function(mu){
+  sim_data=tibble(
+    x=rnorm(n=30,mean=mu,sd=5)
+  )
+  test_result=t.test(sim_data$x,mu=0)
+  broom::tidy(test_result) |>
+    select(estimate,p.value)
+}
+```
 
+```{r}
+sim_ttest(0)
+sim_ttest(3)
+sim_ttest(6)
+```
+
+```{r}
+sim_result=
+  expand_grid(
+    mu=0:6,
+    iter=1:5000)|>
+  mutate(
+    result=map(mu,sim_ttest)
+  )
+```
+
+```{r}
+  sim_result=sim_result |>
+    unnest(cols=result)
+  sim_result
+```
+
+```{r}
+power_df=sim_result |>
+  group_by(mu)|>
+  summarize(
+    power=mean(p.value<0.05)
+  )
+power_df
+```
+
+```{r}
+power_df |>
+  ggplot(aes(x=mu,y=power))+
+  geom_line()+
+  geom_point()+
+  labs(
+    title="Statistical Power by True Mean",
+    x="True Mean",
+    y="Power"
+  )+
+  theme_minimal()
+```
+
+The power increases as the true mean increases. When the true mean is 0, the rejection rate is approximately 0.05. As the true mean increases, the power approaches 1, indicating that larger effect sizes are easier to detect.
+
+```{r}
+mean_df=sim_result |>
+  group_by(mu)|>
+  summarize(
+    mean_estimate=mean(estimate)
+  )
+mean_df
+```
+
+```{r}
+significant_df=sim_result |>
+  filter(p.value<0.05)|>
+  group_by(mu) |>
+  summarize(
+    mean_estimate=mean(estimate)
+  )
+significant_df
+```
+
+```{r}
+comparison_df = bind_rows(
+  mean_df |>
+    mutate(type="All samples"),
+  significant_df |>
+    mutate(type="Significant samples")
+)
+comparison_df
+```
+
+```{r}
+comparison_df |>
+  ggplot(aes(x=mu,y=mean_estimate,color=type))+
+  geom_line()+
+  geom_point()+
+  labs(
+    title="Average Estimates by True Mean",
+    x="True Mean",
+    y="Average Estimate"
+  )+
+  theme_minimal()
+```
+
+The average estimates from all samples are very close to the true means. However, when only statistically significant results are included, the average estimates tend to be higher than the true means, especially when the true mean is small. This difference decreases as the true mean increases and statistical power approaches 1.
 
 
