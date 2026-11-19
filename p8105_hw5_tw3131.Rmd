@@ -20,7 +20,7 @@ birthday_match=function(n) {
 birthday_match(23)
 ```
 
-```{r birthday_stimulation}
+```{r birthday_simulation}
 birthday_results=
   expand_grid(
     group_size=2:50,
@@ -41,7 +41,7 @@ birthday_results |>
   ggplot(aes(x=group_size, y=probability))+
   geom_line()+
   labs(
-    title="Probability of Shared Birthday",
+    title="Probability of Shared Birthdays",
     x="Group Size",
     y="Probability"
   ) +
@@ -116,7 +116,7 @@ longitudinal_df=longitudinal_df |>
 longitudinal_df
 ```
 
-```{r spaghetti plot}
+```{r spaghetti_plot}
 longitudinal_df |>
   ggplot(aes(x=week,y=observation,
   group=interaction(arm,subject_id),
@@ -124,7 +124,7 @@ longitudinal_df |>
   ))+
 geom_line(alpha=0.6)+
   labs(
-    title="Longituial Observation by arm group",
+    title="Longituial Observation by Study Arm",
     x= "Week", 
     y="Observation")+
 theme_minimal()
@@ -251,6 +251,6 @@ comparison_df |>
   theme_minimal()
 ```
 
-The average estimates from all samples are very close to the true means. However, when only statistically significant results are included, the average estimates tend to be higher than the true means, especially when the true mean is small. This difference decreases as the true mean increases and statistical power approaches 1.
+The average estimates from all samples are very close to the true means. However, when only statistically significant results are included, the average estimates tend to be higher than the true means, especially when the true mean is small. This difference decreases as the true mean increases and statistical power approaches 1.This occurs because selecting only statistically significant results tends to retain samples with larger estimated effects, especially when statistical power is low.
 
 
