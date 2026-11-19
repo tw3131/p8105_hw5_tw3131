@@ -50,7 +50,85 @@ birthday_results |>
 
 The probability of sharing a birthday increases with group size. With approximately 23 people, the probability exceeds 50%, and it approaches 97% when the group size reaches 50.
 
+# Problem 2
+```{r file_list}
+file_list=list.files(
+   path="data",
+   pattern="\\.csv$",
+   full.names= TRUE
+ )
 
+file_list
+length(file_list)
+```
+
+```{r}
+data_list=map(file_list,read_csv,show_col_types = FALSE)
+length(data_list)
+data_list[[1]]
+```
+
+```{r}
+longitudinal_df=tibble(
+  filename=basename(file_list),
+  data=data_list
+)
+longitudinal_df
+```
+
+```{r}
+longitudinal_df=longitudinal_df |>
+  unnest(cols=data)
+longitudinal_df
+```
+
+```{r}
+longitudinal_df=longitudinal_df |>
+  mutate(
+    filename=str_remove(filename,"\\.csv$")) |>
+      separate(
+        filename,
+        into=c("arm","subject_id"),
+        sep="_"
+      )
+longitudinal_df
+```
+
+```{r}
+longitudinal_df=longitudinal_df |>
+  pivot_longer(
+    cols=starts_with("week_"),
+names_to = "week",
+values_to = "observation"
+  )
+
+longitudinal_df
+```
+
+
+```{r}
+longitudinal_df=longitudinal_df |>
+  mutate(
+    week=as.numeric(str_remove(week,"week_"))
+  )
+longitudinal_df
+```
+
+```{r spaghetti plot}
+longitudinal_df |>
+  ggplot(aes(x=week,y=observation,
+  group=interaction(arm,subject_id),
+  color=arm
+  ))+
+geom_line(alpha=0.6)+
+  labs(
+    title="Longituial Observation by arm group",
+    x= "Week", 
+    y="Observation")+
+theme_minimal()
+```
+
+The spaghetti plot shows different trends between the two arm groups over eight weeks. The experimental group generally shows an increasing trend in observations, while the control group remains relatively stable with some fluctuations. There is also individual variability within both groups.
 
 
 
